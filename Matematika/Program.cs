@@ -42,10 +42,16 @@ namespace Matematika
 
     public abstract class MathFunction
     {
-        public abstract string Name { get; }
-        public abstract string Description { get; }
-        public abstract Interval Domain { get; }
-        public abstract Interval Range { get; }
+        public virtual string Name { get; }
+        public virtual string Description { get; }
+        public abstract Interval Domain { get; protected set; }
+        public abstract Interval Range { get; protected set; }
+
+        public MathFunction(string name, string description)
+        {
+            Name = name;
+            Description = description;
+        }
 
         public abstract double GetValueAt(double x);
 
@@ -62,14 +68,11 @@ namespace Matematika
         public double a { get; }
         public double b { get; }
 
-        public new static string Name = "Lineární funkce";
-
-        public LinearFunction(double a, double b)
+        public LinearFunction(double a, double b) : base("Lineární funkce", $"f(x) = {a}x + {b}");
         {
             this.a = a;
             this.b = b;
 
-            Description = $"f(x) = {a}x + {b}";
             
         }
     }
