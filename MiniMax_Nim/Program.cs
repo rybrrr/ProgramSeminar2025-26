@@ -115,7 +115,43 @@ namespace MiniMax_Nim_2
 
             int minimax(List<int> piles, int depth, bool maximizingPlayer)
             {
-                // TODO: implementujte :)
+                if (depth == 0 || piles.Sum() == 0)
+                    return maximizingPlayer ? 1 : -1;
+
+                if (maximizingPlayer)
+                {
+                    int best = -1;
+                    for (int i = 0; i < piles.Count * 2 - 1; i++)
+                    {
+                        int matchesToRemove = i % 2 == 0 ? 2 : 1;
+
+                        if (piles[i] < matchesToRemove)
+                            continue;
+
+                        List<int> newPiles = new List<int>(piles);
+                        piles[i] -= matchesToRemove;
+                        best = Math.Max(best, minimax(newPiles, depth - 1, !maximizingPlayer));
+                    }
+
+                    return best;
+                }
+                else
+                {
+                    int best = 1;
+                    for (int i = 0; i < piles.Count * 2 - 1; i++)
+                    {
+                        int matchesToRemove = i % 2 == 0 ? 2 : 1;
+
+                        if (piles[i] < matchesToRemove)
+                            continue;
+
+                        List<int> newPiles = new List<int>(piles);
+                        piles[i] -= matchesToRemove;
+                        best = Math.Max(best, minimax(newPiles, depth - 1, !maximizingPlayer));
+                    }
+
+                    return best;
+                }
             }
 
             return new Tuple<int, byte>(bestPile, matchesToRemove);
