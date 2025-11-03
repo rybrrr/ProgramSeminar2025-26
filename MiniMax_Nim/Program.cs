@@ -121,7 +121,7 @@ namespace MiniMax_Nim_2
                 if (maximizingPlayer)
                 {
                     int best = -1;
-                    for (int i = 0; i < piles.Count * 2 - 1; i++)
+                    for (int i = 0; i < piles.Count * 2; i++)
                     {
                         int matchesToRemove = i % 2 == 0 ? 2 : 1;
 
@@ -138,7 +138,7 @@ namespace MiniMax_Nim_2
                 else
                 {
                     int best = 1;
-                    for (int i = 0; i < piles.Count * 2 - 1; i++)
+                    for (int i = 0; i < piles.Count * 2; i++)
                     {
                         int matchesToRemove = i % 2 == 0 ? 2 : 1;
 
