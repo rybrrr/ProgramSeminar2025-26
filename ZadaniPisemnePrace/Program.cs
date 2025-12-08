@@ -76,15 +76,27 @@ namespace ZadaniPisemnePrace
                             activePosition.Y + moveDir.Y
                         );
 
+                        if (!board.IsPositionOnBoard(nextPosition))
+                            continue;
+
+                        if (board.Fields[nextPosition.X, nextPosition.Y] == Field.Obstacle)
+                            continue;
+
                         if (nextPosition.X == goal.X && nextPosition.Y == goal.Y)
                             return moveNum;
 
-                        if (board.IsPositionOnBoard(nextPosition) && !visitedPositions[nextPosition.X,nextPosition.Y])
+                        if (!visitedPositions[nextPosition.X,nextPosition.Y])
                         {
                             nextActivePositionsBatch.Add(nextPosition);
                             visitedPositions[nextPosition.X, nextPosition.Y] = true;
                         }
                     }
+                }
+
+                Console.WriteLine("------------");
+                foreach (Position2D pos in nextActivePositionsBatch)
+                {
+                    Console.WriteLine($"{pos.X}, {pos.Y}");
                 }
 
                 activePositions = nextActivePositionsBatch.ToArray();
