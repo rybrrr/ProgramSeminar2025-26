@@ -93,12 +93,6 @@ namespace ZadaniPisemnePrace
                     }
                 }
 
-                Console.WriteLine("------------");
-                foreach (Position2D pos in nextActivePositionsBatch)
-                {
-                    Console.WriteLine($"{pos.X}, {pos.Y}");
-                }
-
                 activePositions = nextActivePositionsBatch.ToArray();
                 moveNum += 1;
             }
