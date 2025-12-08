@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace PraceSTextovymiSoubory
 {
@@ -6,7 +8,7 @@ namespace PraceSTextovymiSoubory
     {
         static void Main(string[] args)
         {
-            /**/ // <-- stačí když jednu ze dvou * smažete a celá studijní část se zakomentuje (a naopak)
+            /*/ // <-- stačí když jednu ze dvou * smažete a celá studijní část se zakomentuje (a naopak)
             #region Studijní část
             // 1. OTEVŘENÍ SOUBORU
             // 1.1 Adresa k souboru (File PATH):
@@ -104,7 +106,7 @@ namespace PraceSTextovymiSoubory
 
 
             //
-            using (StreamWriter sw = new StreamWriter(@"..\..\..\..\vstupni_soubory\2.txt"))
+            using (StreamWriter sw = new StreamWriter(@"vstupni_soubory\2.txt"))
             {
                 sw.WriteLine("Ahoj \tsvěte!\n");
             }
@@ -113,20 +115,36 @@ namespace PraceSTextovymiSoubory
             // Tip: Při Debugování uvidíte všchny čtené znaky.
 
 
+            string file1Content = File.ReadAllText(@"vstupni_soubory\1.txt");
+            string file2Content = File.ReadAllText(@"vstupni_soubory\2.txt");
+
+            Console.WriteLine($"File 1 character count: {file1Content.Length}");    // 16
+            Console.WriteLine($"File 2 character count: {file2Content.Length}");    // 15
+
+            // 1.txt má 4 mezery (4x \x20) mezi slovy, zatímco 2.txt má 1 mezeru a 1 horizontální tabulátor (\x20 a \x09)
+            // 1.txt končí na \x0d\x0a, zatímco 2.txt končí na \x0a\x0d\x0a (má o line feed víc)
+            // Tyto rozdíly nastávají, neboť při psaní v textovém editoru se soubor automaticky uloží v upravené podobě, 
+            //  zatímco s sw.WriteLine mu přesně řekneme, které bytes v něm chceme
+            //  (ale "Write*Line*" => +carriage return (Windows moment) +line feed)
 
             // (10b) 2. Jaký je počet znaků v souboru 1.txt, když pomineme bílé znaky?
             // Tip: Struktura Char má statickou funkci IsWhiteSpace().            
 
+            int file1CharCount = 0;
+            foreach (char ch in file1Content)
+                if (!Char.IsWhiteSpace(ch))
+                    file1CharCount++;
 
+            Console.WriteLine($"File 1 character count without whitespaces: {file1CharCount}"); // 10
 
             //
-            using (StreamWriter sw = new StreamWriter(@"..\..\..\..\vstupni_soubory\4.txt"))
+            using (StreamWriter sw = new StreamWriter(@"vstupni_soubory\4.txt"))
             {
                 sw.WriteLine("1");
                 sw.WriteLine("2");
                 sw.WriteLine("3");
             }
-            using (StreamWriter sw = new StreamWriter(@"..\..\..\..\vstupni_soubory\5.txt"))
+            using (StreamWriter sw = new StreamWriter(@"vstupni_soubory\5.txt"))
             {
                 sw.Write("1\n2\n3");
             }
@@ -135,6 +153,9 @@ namespace PraceSTextovymiSoubory
             // Jakým znakům odpovídají v ASCII tabulce? https://www.ascii-code.com/
             // Zde se stačí podívat do VS Code a napsat sem odpověď, není potřeba nic programovat.
 
+            // 3.txt: carriage return + line feed mezi řádky
+            // 4.txt: carriage return + line feed po každém řádku (vč. posledního)
+            // 5.txt: pouze line feed mezi řádky
 
 
             // (10b) 4. Kolik slov má soubor 6.txt?
@@ -142,18 +163,35 @@ namespace PraceSTextovymiSoubory
             // Tip: Split defaultně odděluje na základě libovolných bílých znaků, ale je tam jeden háček.. jaký?
             // V souboru je vidět 52 slov.
 
+            string file6Content = File.ReadAllText(@"vstupni_soubory/6.txt");
+            int file6WordCount = file6Content.Split(new string[] { }, StringSplitOptions.RemoveEmptyEntries).Length;
 
+            Console.WriteLine($"File 6 word count: {file6WordCount}");
+
+            // Háček: carriage return i line feed jsou bílé znaky, mezi sebou mají prázdno, které se počítá jako slovo
 
             // (15b) 5. Zapište do souboru 7.txt slovo "řeřicha". Povedlo se? 
             // Vypište obsah souboru do konzole. V čem je u konzole problém a jak ho spravit?
             // Jaké kódování používá C#? Kolik bytů na znak?
 
+            File.WriteAllText(@"vstupni_soubory\7.txt", "řeřicha");
+            string file7Content = File.ReadAllText(@"vstupni_soubory\7.txt");
+
+            Console.WriteLine(Encoding.Default);    // System.Text.UTF8Encoding+UTF8EncodingSealed
+            Console.WriteLine(file7Content);    // rericha
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.WriteLine(file7Content);    // řeřicha
+
+            // Nehledě na to, co píše Encoding.Default, C# typicky užívá UTF-16 pro stringy atp. (2 bytes/char)
 
 
             // (25b) 6. Vypište četnosti jednotlivých slov v souboru 8.txt do souboru 9.txt ve formátu slovo:četnost na samostatný řádek.
             // Tentokrát však slova nejprve očištěte od diakritiky a všechna písmena berte jako malá (tak je i ukládejte do slovníku).
             // Tip: Využijte slovník: Dictionary<string, int> slova = new Dictionary<string, int>();
 
+            string file8Content = File.ReadAllText(@"vstupni_soubory\8.txt");
+            string[] file8WordList = file8Content.Split();
+            Dictionary<string, int> file8WordMap = new Dictionary<string, int>();
 
 
             // (+15b) Bonus: Vypište četnosti jednotlivých znaků abecedy (malá a velká písmena) v souboru 8.txt do konzole.
