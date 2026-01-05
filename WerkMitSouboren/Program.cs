@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -190,11 +191,47 @@ namespace PraceSTextovymiSoubory
             // Tip: Využijte slovník: Dictionary<string, int> slova = new Dictionary<string, int>();
 
             string file8Content = File.ReadAllText(@"vstupni_soubory\8.txt");
-            string[] file8WordList = file8Content.Split();
-            Dictionary<string, int> file8WordMap = new Dictionary<string, int>();
+            string file8ContentLowerNoDiacritics = new string(
+                file8Content.ToLower().Normalize(NormalizationForm.FormD)
+                    .Where(c => Char.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark && (Char.IsLetter(c) || c == ' '))
+                    .ToArray()
+            );
 
+            string[] file8WordList = file8ContentLowerNoDiacritics.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+            Dictionary<string, int> file8WordMap = new Dictionary<string, int>();
+            foreach (string word in file8WordList)
+            {
+                if (!file8WordMap.ContainsKey(word))
+                    file8WordMap.Add(word, 0);
+
+                file8WordMap[word] += 1;
+            }
+
+            using (StreamWriter sw = new StreamWriter(@"vstupni_soubory\9.txt"))
+            {
+                foreach (KeyValuePair<string, int> entry in file8WordMap)
+                {
+                    sw.WriteLine($"{entry.Key}:{entry.Value}");
+                }
+            }
 
             // (+15b) Bonus: Vypište četnosti jednotlivých znaků abecedy (malá a velká písmena) v souboru 8.txt do konzole.
+            Dictionary<char, int> file8CharMap = new Dictionary<char, int>();
+            foreach (char c in file8Content)
+            {
+                if (!Char.IsLetter(c))
+                    continue;
+
+                if (!file8CharMap.ContainsKey(c))
+                    file8CharMap.Add(c, 0);
+
+                file8CharMap[c] += 1;
+            }
+
+            foreach (KeyValuePair<char, int> entry in file8CharMap)
+            {
+                Console.WriteLine($"{entry.Key}: {entry.Value}");
+            }
 
             #endregion
         }
