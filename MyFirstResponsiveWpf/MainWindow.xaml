@@ -13,19 +13,21 @@
             <RowDefinition/>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
-        <Menu>
+        <Menu VerticalAlignment="Center">
             <MenuItem Header="Soubor">
-                <MenuItem Header="Otevřít"/>
-                <MenuItem Header="Uložit"/>
+                <MenuItem x:Name="OpenItemMenu" Header="Otevřít" Click="OpenItemMenu_Click"/>
+                <MenuItem x:Name="SaveItemMenu" Header="Uložit" Click="SaveItemMenu_Click"/>
             </MenuItem>
             <MenuItem Header="Upravit"/>
         </Menu>
         <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Label>Tloušťka štětce</Label>
-            <Slider></Slider>
-            <Label>Barva</Label>
-            <Button></Button>
+            <Image Source="/brush.jpg"/>
+            <Label Height="30" HorizontalAlignment="Center">Šířka štětce:</Label>
+            <Slider x:Name="sldrWidth" Width="150" VerticalAlignment="Center" ValueChanged="sldrWidth_ValueChanged" Minimum="1" Value="4"/>
+            <Label HorizontalAlignment="Center" Height="30">Barva štětce:</Label>
+            <Button x:Name="btnColor" Width="40" Height="40" Background="Black" Click="btnColor_Click"></Button>
         </StackPanel>
+        <Canvas x:Name="DrawingCanvas" Grid.Row="2" MouseMove="DrawingCanvas_MouseMove" MouseDown="DrawingCanvas_MouseDown" MouseUp="DrawingCanvas_MouseUp" Background="White"/>
 
     </Grid>
 </Window>

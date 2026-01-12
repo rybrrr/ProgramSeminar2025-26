@@ -109,28 +109,43 @@ namespace MiniMax_Nim_2
         private Tuple<int, byte> GetBestBotMove()
         {
             int bestPile = 0;
-            byte matchesToRemove = 1;
+            byte bestMatchesToRemove = 1;
+
+            Console.WriteLine("GetBestBitNive called");
 
             int score = minimax(_state.Piles.ToList(), 10, true);
 
             int minimax(List<int> piles, int depth, bool maximizingPlayer)
             {
+                Console.WriteLine($"player: {maximizingPlayer}");
                 if (depth == 0 || piles.Sum() == 0)
                     return maximizingPlayer ? 1 : -1;
 
                 if (maximizingPlayer)
                 {
                     int best = -1;
+
                     for (int i = 0; i < piles.Count * 2; i++)
                     {
                         int matchesToRemove = i % 2 == 0 ? 2 : 1;
+                        int pile = i / 2;
 
-                        if (piles[i] < matchesToRemove)
+                        Console.WriteLine($"Pile, matches: {pile} > {matchesToRemove}");
+
+                        if (piles[pile] < matchesToRemove)
                             continue;
 
                         List<int> newPiles = new List<int>(piles);
-                        piles[i] -= matchesToRemove;
-                        best = Math.Max(best, minimax(newPiles, depth - 1, !maximizingPlayer));
+                        piles[pile] -= matchesToRemove;
+
+                        int nextValue = minimax(newPiles, depth - 1, !maximizingPlayer);
+                        if (nextValue > best)
+                        {
+                            Console.WriteLine($"Setting maximizing best to: {nextValue} - {pile} > {matchesToRemove}");
+                            best = nextValue;
+                            bestPile = pile;
+                            bestMatchesToRemove = (byte) matchesToRemove;
+                        }
                     }
 
                     return best;
@@ -141,20 +156,29 @@ namespace MiniMax_Nim_2
                     for (int i = 0; i < piles.Count * 2; i++)
                     {
                         int matchesToRemove = i % 2 == 0 ? 2 : 1;
+                        int pile = i / 2;
 
-                        if (piles[i] < matchesToRemove)
+                        if (piles[pile] < matchesToRemove)
                             continue;
 
                         List<int> newPiles = new List<int>(piles);
-                        piles[i] -= matchesToRemove;
-                        best = Math.Max(best, minimax(newPiles, depth - 1, !maximizingPlayer));
+                        piles[pile] -= matchesToRemove;
+
+                        int nextValue = minimax(newPiles, depth - 1, !maximizingPlayer);
+                        if (nextValue < best)
+                        {
+                            Console.WriteLine($"Setting MIN best to: {nextValue}");
+                            best = nextValue;
+                            bestPile = pile;
+                            bestMatchesToRemove = (byte)matchesToRemove;
+                        }
                     }
 
                     return best;
                 }
             }
 
-            return new Tuple<int, byte>(bestPile, matchesToRemove);
+            return new Tuple<int, byte>(bestPile, bestMatchesToRemove);
         }
 
         private void PrintGameState()
