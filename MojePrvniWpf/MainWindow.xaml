@@ -8,13 +8,13 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Rectangle x:Name="colorRect" HorizontalAlignment="Left" Height="256" Margin="98,0,0,0" Stroke="Black" VerticalAlignment="Center" Width="256" Fill="Black"/>
-        <TextBox x:Name="redTxt" HorizontalAlignment="Left" Margin="503,110,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="71" TextChanged="TextBox_TextChanged" Height="34" FontSize="20"/>
+        <TextBox x:Name="redTxt" HorizontalAlignment="Left" Margin="503,110,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="71" TextChanged="TextBox_TextChanged" Height="34" FontSize="20" PreviewTextInput="Integer"/>
         <Slider x:Name="redSlider" HorizontalAlignment="Left" Margin="598,118,0,0" VerticalAlignment="Top" Width="120" Maximum="255" SmallChange="1" ValueChanged="redSlider_ValueChanged"/>
         <Label Content="Red" HorizontalAlignment="Left" Margin="435,109,0,0" VerticalAlignment="Top" FontSize="20"/>
-        <TextBox x:Name="greenTxt" HorizontalAlignment="Left" Margin="503,163,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="71" TextChanged="TextBox_TextChanged" Height="34" FontSize="20"/>
+        <TextBox x:Name="greenTxt" HorizontalAlignment="Left" Margin="503,163,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="71" TextChanged="TextBox_TextChanged" Height="34" FontSize="20" PreviewTextInput="Integer"/>
         <Slider x:Name="greenSlider" HorizontalAlignment="Left" Margin="598,171,0,0" VerticalAlignment="Top" Width="120" Maximum="255" SmallChange="1" ValueChanged="greenSlider_ValueChanged"/>
         <Label Content="Green" HorizontalAlignment="Left" Margin="435,162,0,0" VerticalAlignment="Top" FontSize="20"/>
-        <TextBox x:Name="blueTxt" HorizontalAlignment="Left" Margin="503,218,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="71" TextChanged="TextBox_TextChanged" Height="34" FontSize="20"/>
+        <TextBox x:Name="blueTxt" HorizontalAlignment="Left" Margin="503,218,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="71" TextChanged="TextBox_TextChanged" Height="34" FontSize="20" PreviewTextInput="Integer"/>
         <Slider x:Name="blueSlider" HorizontalAlignment="Left" Margin="598,226,0,0" VerticalAlignment="Top" Width="120" Maximum="255" SmallChange="1" ValueChanged="blueSlider_ValueChanged"/>
         <Label Content="Blue" HorizontalAlignment="Left" Margin="435,217,0,0" VerticalAlignment="Top" FontSize="20"/>
         <Label x:Name="hexLabel" Content="#000000" HorizontalAlignment="Left" Margin="483,300,0,0" VerticalAlignment="Top" Height="45" Width="175" FontSize="24"/>

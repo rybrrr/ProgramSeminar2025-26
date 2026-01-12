@@ -1,0 +1,31 @@
+﻿<Window x:Class="MyFirstResponsiveWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyFirstResponsiveWpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Menu>
+            <MenuItem Header="Soubor">
+                <MenuItem Header="Otevřít"/>
+                <MenuItem Header="Uložit"/>
+            </MenuItem>
+            <MenuItem Header="Upravit"/>
+        </Menu>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Label>Tloušťka štětce</Label>
+            <Slider></Slider>
+            <Label>Barva</Label>
+            <Button></Button>
+        </StackPanel>
+
+    </Grid>
+</Window>

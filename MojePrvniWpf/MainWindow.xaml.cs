@@ -46,29 +46,33 @@ namespace MojePrvniWpf
 
         private void updateColor()
         {
+            if (!IsLoaded)
+                return;
+
             int r = int.Parse(redTxt.Text);
             int g = int.Parse(greenTxt.Text);
             int b = int.Parse(blueTxt.Text);
-            string hexR = r.ToString("X");
-            string hexG = r.ToString("X");
-            string hexB = r.ToString("X");
+            string hexR = r.ToString("X2");
+            string hexG = g.ToString("X2");
+            string hexB = b.ToString("X2");
 
             colorRect.Fill = new SolidColorBrush(Color.FromRgb((byte)r, (byte)g, (byte)b));
             hexLabel.Content = $"#{hexR}{hexG}{hexB}";
         }
 
+        private void Integer(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !e.Text.All(cc => Char.IsNumber(cc));
+            base.OnPreviewTextInput(e);
+        }
+
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            bool succ = int.TryParse(((TextBox)sender).Text, out int value);
-            if (!succ)
-            {
-                ((TextBox)sender).Text = "0";
-                // Warning
-            }
-            else if (value < 0 || value > 255)
+            int.TryParse(((TextBox)sender).Text, out int value);
+            if (value < 0 || value > 255)
             {
                 ((TextBox)sender).Text = Math.Clamp(value, 0, 255).ToString();
-                // Warning
+                MessageBox.Show("Vstupní číslo musí být mezi 0 a 255!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             updateColor();
