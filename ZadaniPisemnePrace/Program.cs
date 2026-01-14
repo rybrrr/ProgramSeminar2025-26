@@ -184,8 +184,8 @@ namespace ZadaniPisemnePrace
 
         public bool IsPositionOnBoard(Position2D position)
         {
-            return (position.X > 0 && position.X < Width)
-                && (position.Y > 0 && position.Y < Height);
+            return (position.X >= 0 && position.X < Width)
+                && (position.Y >= 0 && position.Y < Height);
         }
     }
 
