@@ -108,51 +108,35 @@ namespace MiniMax_Nim_2
 
         private Tuple<int, byte> GetBestBotMove()
         {
-            int bestPile = 0;
-            byte bestMatchesToRemove = 1;
-
-            Console.WriteLine("GetBestBitNive called");
-
-            int score = minimax(_state.Piles.ToList(), 10, true);
-
-            int minimax(List<int> piles, int depth, bool maximizingPlayer)
+            int minimax(List<int> piles, bool maximizingPlayer)
             {
-                Console.WriteLine($"player: {maximizingPlayer}");
-                if (depth == 0 || piles.Sum() == 0)
+                if (piles.Sum() == 0)
                     return maximizingPlayer ? 1 : -1;
 
                 if (maximizingPlayer)
                 {
-                    int best = -1;
+                    int best = int.MinValue;
 
                     for (int i = 0; i < piles.Count * 2; i++)
                     {
                         int matchesToRemove = i % 2 == 0 ? 2 : 1;
                         int pile = i / 2;
 
-                        Console.WriteLine($"Pile, matches: {pile} > {matchesToRemove}");
-
                         if (piles[pile] < matchesToRemove)
                             continue;
 
                         List<int> newPiles = new List<int>(piles);
-                        piles[pile] -= matchesToRemove;
+                        newPiles[pile] -= matchesToRemove;
 
-                        int nextValue = minimax(newPiles, depth - 1, !maximizingPlayer);
-                        if (nextValue > best)
-                        {
-                            Console.WriteLine($"Setting maximizing best to: {nextValue} - {pile} > {matchesToRemove}");
-                            best = nextValue;
-                            bestPile = pile;
-                            bestMatchesToRemove = (byte) matchesToRemove;
-                        }
+                        best = Math.Max(best, minimax(newPiles, !maximizingPlayer));
+    
                     }
 
                     return best;
                 }
                 else
                 {
-                    int best = 1;
+                    int best = int.MaxValue;
                     for (int i = 0; i < piles.Count * 2; i++)
                     {
                         int matchesToRemove = i % 2 == 0 ? 2 : 1;
@@ -162,19 +146,38 @@ namespace MiniMax_Nim_2
                             continue;
 
                         List<int> newPiles = new List<int>(piles);
-                        piles[pile] -= matchesToRemove;
+                        newPiles[pile] -= matchesToRemove;
 
-                        int nextValue = minimax(newPiles, depth - 1, !maximizingPlayer);
-                        if (nextValue < best)
-                        {
-                            Console.WriteLine($"Setting MIN best to: {nextValue}");
-                            best = nextValue;
-                            bestPile = pile;
-                            bestMatchesToRemove = (byte)matchesToRemove;
-                        }
+                        int nextValue = minimax(newPiles, !maximizingPlayer);
+                        best = Math.Min(best, minimax(newPiles, !maximizingPlayer));
                     }
 
                     return best;
+                }
+            }
+
+            int bestPile = 0;
+            byte bestMatchesToRemove = 1;
+            int bestScore =  int.MinValue;
+
+            for (int i = 0; i < _state.Piles.Count * 2; i++)
+            {
+                int matchesToRemove = i % 2 == 0 ? 2 : 1;
+                int pile = i / 2;
+
+                if (_state.Piles[pile] < matchesToRemove)
+                    continue;
+
+                List<int> newPiles = _state.Piles.ToList();
+                newPiles[pile] -= matchesToRemove;
+
+                int score = minimax(newPiles, false);
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestPile = pile;
+                    bestMatchesToRemove = (byte) matchesToRemove;
                 }
             }
 
