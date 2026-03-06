@@ -39,7 +39,6 @@ namespace PrijmeniJmeno_Navigace
         }
     }
 
-
     public class Map
     {
         public int[,] CityDistances { get; set; }
