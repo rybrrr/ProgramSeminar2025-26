@@ -9,7 +9,7 @@ namespace Coins
             (int[] coins, int sum)? result = GetInput();
             if (result == null)
             {
-                throw new Exception("Invalid input!");
+                throw new Exception("Invalidní input!");
             }
 
             // Empty line for aesthetics
@@ -22,6 +22,13 @@ namespace Coins
                     continue;
 
                 isPossibleToPartition = true;
+                
+                if (partitioned.Count == 0)
+                {
+                    Console.WriteLine("Nepoužije se žádná mince.");
+                    continue;
+                }
+                
                 partitioned.Reverse();
                 string partitionString = string.Join(" ", partitioned);
                 Console.WriteLine(partitionString);
