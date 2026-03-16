@@ -1,60 +1,94 @@
-﻿namespace Knapsack
+﻿using System.Runtime.CompilerServices;
+using System.Text;
+
+namespace Knapsack
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            /*
-            Item[] items = new Item[] {
-                new Item(100, 10),
-                new Item(120, 8),
-                new Item(50, 5),
-                new Item(50, 3),
-                new Item(5, 2),
-                new Item(90, 6),
-                new Item(40, 3),
-                new Item(1, 1),
-                new Item(4, 4),
-            };
-            int weight = 25;
-            */
+            List<KnapsackTest> tests = LoadKnapsacks();
 
-            /*
-            Item[] items = new Item[] {
-                new Item(2, 3),
-                new Item(2, 1),
-                new Item(4, 3),
-                new Item(5, 4),
-                new Item(3, 2),
-            };
-            int weight = 7;
-            */
-
-            
-            Item[] items = new Item[]
+            for (int i = 0; i < tests.Count; i++)
             {
-                new Item(2, 2),
-                new Item(2, 1),
-            };
-            int weight = 3;
-            
+                KnapsackTest test = tests[i];
+                Console.WriteLine($"Test {i+1}");
+                test.OutputSolution();
+                Console.WriteLine();
+            }
+        }
 
-            Knapsack knapsack = new Knapsack(items, weight);
-            knapsack.EvaluateKnapsack();
+        public static List<KnapsackTest> LoadKnapsacks()
+        {
+            string testFileName = "Knapsack_testy.txt";
+            List<KnapsackTest> tests = new List<KnapsackTest>();
 
+            using (StreamReader sr = new StreamReader(testFileName))
+            {
+                while (!sr.EndOfStream)
+                {
+                    string? profits = sr.ReadLine();
+                    string? weights = sr.ReadLine();
+                    string? maxWeight = sr.ReadLine();
+                    string? correctProfit = sr.ReadLine();
+                    string? correctItems = sr.ReadLine();
+                    sr.ReadLine();  // Every block ends with an empty line
+
+                    if (correctItems == null)
+                        continue;   // Malformed test data, should end here
+
+                    Item.ResetID();
+
+                    try
+                    {
+                        Item[] items = profits!.Split().Zip(
+                            weights!.Split(),
+                            (a, b) => new Item(int.Parse(a), int.Parse(b))
+                        ).ToArray();
+
+                        Knapsack knapsack = new Knapsack(items, int.Parse(maxWeight!));
+
+                        // Trim the leading '-> '
+                        correctProfit = correctProfit!.Substring(3);
+                        correctItems = correctItems.Substring(3);
+
+                        KnapsackTest test = new KnapsackTest(knapsack, correctProfit, correctItems);
+                        tests.Add(test);
+                    }
+                    catch (Exception ex) when (
+                        ex is FormatException ||
+                        ex is OverflowException)
+                    {
+                        continue;   // Malformed test data, continue to the next one
+                    }
+                }   
+            }
+
+            return tests;
         }
     }
-    public struct Item
+    public readonly struct Item
     {
+        private static int _currItemID = 1;
+
+        public int ItemID { get; }
         public int Profit { get; }
         public int Weight { get; }
         public int ProfitPerWeight { get; }
 
         public Item(int profit, int weight)
         {
+            ItemID = _currItemID;
+            _currItemID++;
+
             Profit = profit;
             Weight = weight;
             ProfitPerWeight = weight == 0 ? int.MaxValue : profit / Weight;
+        }
+
+        public static void ResetID()
+        {
+            _currItemID = 1;
         }
     }
 
@@ -81,8 +115,10 @@
         // Distinguish between the original items and the sorted ones to keep the original public reference
         private Item[] _sortedItems;
         public Item[] Items { get; }
-        public Item[] PickedItems { get; }
         public int MaxWeight { get; }
+
+        public Item[]? PickedItems { get; protected set; }
+        public int? MaxProfit { get; protected set; }
 
         public Knapsack(Item[] items, int maxWeight)
         {
@@ -137,48 +173,116 @@
             while (priorityQueue.Count > 0)
             {
                 Node node = priorityQueue.Dequeue();
-                Node nextNode0;     // Without adding the next item
-                Node nextNode1;     // With adding the next item
 
+                // Check if we're already on a leaf; continue if yes
                 if (node.Level == n - 1)
-                    continue;   // The next node is going to be a leaf
-                else if (node.Level == -1)
-                    nextNode1 = new Node(
-                        node,
-                        true,
-                        0,
-                        _sortedItems[0].Weight,
-                        _sortedItems[0].Profit
-                    );   // Actual 0,0,0 root
-                else
-                    nextNode1 = new Node(
-                        node,
-                        true,
-                        node.Level + 1,
-                        node.TotalWeight + _sortedItems[node.Level + 1].Weight,
-                        node.TotalProfit + _sortedItems[node.Level + 1].Profit
-                    );
+                    continue;
 
-                if (nextNode1.TotalWeight <= MaxWeight && nextNode1.TotalProfit > maxProfit)
-                    maxProfit = nextNode1.TotalProfit;   // We can already see that this node is going to be better
-
-                float nextBound1 = Bound(nextNode1);
-                if (nextBound1 > maxProfit)
-                    priorityQueue.Enqueue(nextNode1, nextBound1); // The next node has the potential to be better
-
-                nextNode0 = new Node(
+                // A node without adding the next item
+                Node nextNode0 = new Node(
                     node,
                     false,
                     node.Level + 1,
                     node.TotalWeight,
                     node.TotalProfit
-                    );
+                );
+
+                // A node with adding the next item
+                Node nextNode1 = new Node(
+                    node,
+                    true,
+                    node.Level + 1,
+                    node.TotalWeight + _sortedItems[node.Level + 1].Weight,
+                    node.TotalProfit + _sortedItems[node.Level + 1].Profit
+                );
+
+                // First check if adding the item is benefitial; update if yes
+                if (nextNode1.TotalWeight <= MaxWeight && nextNode1.TotalProfit > maxProfit)
+                {
+                    // Only check when the next item is added because not including the next item can't increase profit
+                    maxProfit = nextNode1.TotalProfit;
+                    lastNode = nextNode1;
+                }
+
+                // Then check if the item has potential to be even better later on
+                float nextBound1 = Bound(nextNode1);
+                if (nextBound1 > maxProfit)
+                    priorityQueue.Enqueue(nextNode1, nextBound1);
+
+                // Finally check the potential of not adding the item
                 float nextBound0 = Bound(nextNode0);
                 if (nextBound0 > maxProfit)
                     priorityQueue.Enqueue(nextNode0, nextBound0);
             }
 
-            Console.WriteLine($"Max profit: {maxProfit}");
+            // At last, choose the added items and sort the list
+            List<Item> pickedItems = new List<Item>();
+            while (lastNode.Parent != null)
+            {
+                if (lastNode.ItemAdded)
+                {
+                    Item item = _sortedItems[lastNode.Level];
+                    pickedItems.Add(item);
+                }
+
+                lastNode = lastNode.Parent;
+            }
+
+            pickedItems.Sort((item1, item2) => item1.ItemID.CompareTo(item2.ItemID));
+
+            PickedItems = pickedItems.ToArray();
+            MaxProfit = maxProfit;
+        }
+
+        public void OutputSolution()
+        {
+            if (MaxProfit == null || PickedItems == null)
+                throw new Exception("Tried to output solution of a knapsach that is yet to be evaluated!");
+
+            int[] pickedIDs = new int[PickedItems.Length];
+            for (int i = 0; i < pickedIDs.Length; i++)
+            {
+                Item item = PickedItems[i];
+                pickedIDs[i] = item.ItemID;
+            }
+
+            string items = string.Join(' ', pickedIDs);
+
+            Console.WriteLine($"-> {MaxProfit}");
+            Console.WriteLine($"-> {items}");
+        }
+    }
+
+    public class KnapsackTest
+    {
+        public Knapsack TestedKnapsack { get; }
+        public string CorrectMaxProfit { get; }
+        public string CorrectPickedItems { get; }
+
+        public KnapsackTest(Knapsack testedKnapsack, string correctMaxProfit, string correctPickedItems)
+        {
+            TestedKnapsack = testedKnapsack;
+            CorrectMaxProfit = correctMaxProfit;
+            CorrectPickedItems = correctPickedItems;
+        }
+
+        public void OutputSolution()
+        {
+            if (TestedKnapsack.PickedItems == null || TestedKnapsack.MaxProfit == null)
+                TestedKnapsack.EvaluateKnapsack();
+
+            // Convert picked items to a string first
+            int[] pickedIDs = new int[TestedKnapsack.PickedItems!.Length];
+            for (int i = 0; i < pickedIDs.Length; i++)
+            {
+                Item item = TestedKnapsack.PickedItems[i];
+                pickedIDs[i] = item.ItemID;
+            }
+            string items = string.Join(' ', pickedIDs);
+
+            // Output the solution
+            Console.WriteLine($"--> '{TestedKnapsack.MaxProfit}' (correct: '{CorrectMaxProfit}')");
+            Console.WriteLine($"--> '{items}' (correct: '{CorrectPickedItems}')");
         }
     }
 }
