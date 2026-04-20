@@ -15,39 +15,156 @@ namespace PrijmeniJmeno_Navigace
                 return;
             }
 
-            string? startAndGoal = Console.ReadLine();
-            if (startAndGoal == null)
+            (int Start, int Goal)? pathEnds = GetPathEndsFromInput(map);
+            if (pathEnds == null)
             {
                 Console.WriteLine("Neplatný vstup.");
                 return;
             }
 
-#pragma warning disable CS8602 // Přístup přes ukazatel k možnému odkazu s hodnotou null
+            (int[] Nodes, int Distance)? path = map.FindPath(pathEnds.Value.Start, pathEnds.Value.Goal, 1);
+
+            Console.WriteLine();
+            Console.WriteLine("Výstup:");
+            Map.PrettyPrintPath(path);
+        }
+
+        static (int Start, int Goal)? GetPathEndsFromInput(Map map)
+        {
+            string? startAndGoal = Console.ReadLine();
+            if (startAndGoal == null)
+                return null;
+
             string[] startAndGoalSplit = startAndGoal.Split(" ");
-#pragma warning restore CS8602 // Přístup přes ukazatel k možnému odkazu s hodnotou null
 
             bool startLoadSuccess = int.TryParse(startAndGoalSplit[0], out int startIndex);
             bool goalLoadSuccess = int.TryParse(startAndGoalSplit[1], out int goalIndex);
 
             if (!startLoadSuccess || !goalLoadSuccess)
-            {
-                Console.WriteLine("Neplatný vstup.");
-                return;
-            }
+                return null;
 
+            if (!map.DoesCityExist(startIndex) || !map.DoesCityExist(goalIndex))
+                return null;
 
+            return (startIndex, goalIndex);
         }
     }
 
     public class Map
     {
-        public int[,] CityDistances { get; set; }
-        public bool[,] HasToll { get; set; }
+        public byte?[,] Tolls { get; }    // 1 if there is toll, 0 if there is none
+        public int?[,] CityDistances { get; }
+        public int CityCount { get; }
 
-        public Map(int[,] cityDistances, bool[,] hasToll)
+        public Map(int?[,] cityDistances, byte?[,] tolls)
         {
+            Tolls = tolls;
             CityDistances = cityDistances;
-            HasToll = hasToll;
+            CityCount = cityDistances.GetLength(0);
+        }
+
+        public bool DoesCityExist(int cityID)
+        {
+            return cityID >= 0 && cityID < CityCount;
+        }
+
+        public (int[] Nodes, int Distance)? FindPath(int startID, int goalID, byte maxTolls)
+        {
+            int?[,] tollsXDistances = new int?[CityCount, maxTolls+1];
+            int?[,] tollsXParents = new int?[CityCount, maxTolls+1];
+
+            // Initialize start distances
+            for (int i = 0; i <= maxTolls; i++)
+                tollsXDistances[startID, i] = 0;
+
+            // Enqueue touples consisting of (cityID, tollCount)
+            // Assume the maximum number of tolls is <= 255
+            PriorityQueue<(int, byte), int> openNodes = new PriorityQueue<(int, byte), int>();
+            openNodes.Enqueue((startID, 0), 0);
+
+            // Perform the Dijkstra algorithm
+            while (openNodes.Count > 0)
+            {
+                (int nodeID, byte currentToll) = openNodes.Dequeue();
+                int currentDistance = (int)tollsXDistances[nodeID, currentToll]!;
+
+                // Loop through all the connected nodes
+                for (int i = 0; i < CityCount; i++)
+                {
+                    int? distance = CityDistances[nodeID, i];
+                    byte? nextToll = Tolls[nodeID, i];
+                    if (distance == null || nextToll == null)
+                        continue;   // The nodes are not connected
+
+                    byte totalToll = (byte)(currentToll + nextToll);
+                    int totalDistance = (int)(currentDistance + distance);
+
+                    if (totalToll > maxTolls)
+                        continue;   // The maximum number of tolls would be overstepped
+
+                    int? currentBestDistance = tollsXDistances[i, totalToll];
+
+                    if (currentBestDistance != null && currentBestDistance <= totalDistance)
+                        continue;   // The distance would not get better
+
+                    // If the nodes are connected, the tolls is not too high, and the distance may improve,
+                    // update the next node's info and enqueue it
+                    tollsXDistances[i, totalToll] = totalDistance;
+                    tollsXParents[i, totalToll] = nodeID;
+                    openNodes.Enqueue((i, totalToll), totalDistance);
+                }
+            }
+
+            int? bestDistance = null;
+            int? bestToll = null;
+
+            for (int i = 0; i <= maxTolls; i++)
+            {
+                int? distance = tollsXDistances[goalID, i];
+                if (distance != null && (bestDistance == null || distance < bestDistance))
+                {
+                    bestDistance = distance;
+                    bestToll = i;
+                }
+            }
+
+            if (bestDistance == null)
+                return null;    // No path was found
+
+            List<int> path = [goalID];
+
+            int prevNode = goalID;
+            int? parent = tollsXParents[prevNode, (int)bestToll!];
+            int remainingToll = (int)bestToll;
+            while (parent != null)
+            {
+                int? toll = Tolls[prevNode, (int)parent];
+
+                if (toll != null)
+                    remainingToll -= (int)toll;
+
+                prevNode = (int)parent;
+                parent = tollsXParents[prevNode, remainingToll];
+
+                path.Add(prevNode);
+            }
+
+            path.Reverse();
+
+            return (path.ToArray(), (int)bestDistance);
+        }
+
+        public static void PrettyPrintPath((int[] Nodes, int Distance)? path)
+        {
+            if (path == null)
+            {
+                Console.WriteLine("Mezi městy nevede žádná cesta splňující dané podmínky.");
+                return;
+            }
+
+            string pathString = string.Join(" -> ", path.Value.Nodes);
+            Console.WriteLine(pathString);
+            Console.WriteLine($"vzdálenost: {path.Value.Distance}");
         }
 
         public static Map? LoadFromInput()
@@ -58,6 +175,10 @@ namespace PrijmeniJmeno_Navigace
                 return null;
 
             string[] graphDimensionsSplit = graphDimensions.Split(" ");
+
+            if (graphDimensionsSplit.Length != 2)
+                return null;
+
             bool cityLoadSuccess = int.TryParse(graphDimensionsSplit[0], out int numCities);
             bool roadLoadSuccess = int.TryParse(graphDimensionsSplit[1], out int numRoads);
 
@@ -67,8 +188,8 @@ namespace PrijmeniJmeno_Navigace
             if (numCities <= 0 || numRoads < 0)
                 return null;
 
-            int[,] cityDistances = new int[numCities, numCities];
-            bool[,] hasToll = new bool[numCities, numCities];
+            int?[,] cityDistances = new int?[numCities, numCities];
+            byte?[,] tolls = new byte?[numCities, numCities];
 
             for (int i = 0; i < numRoads; i++)
             {
@@ -101,11 +222,11 @@ namespace PrijmeniJmeno_Navigace
                 cityDistances[city1, city2] = distance;
                 cityDistances[city2, city1] = distance;
 
-                hasToll[city1, city2] = toll == 1;
-                hasToll[city2, city1] = toll == 1;
+                tolls[city1, city2] = (byte)toll;
+                tolls[city2, city1] = (byte)toll;
             }
 
-            Map newMap = new Map(cityDistances, hasToll);
+            Map newMap = new Map(cityDistances, tolls);
 
             return newMap;
         }
